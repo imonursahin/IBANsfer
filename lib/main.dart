@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'login.dart';
 import 'panel.dart';
 
 void main() {
@@ -72,7 +73,7 @@ class MainContent extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (BuildContext context) {
-                    return MainPanel();
+                    return MainLogin();
                   }));
                 },
                 padding: EdgeInsets.all(12),

@@ -33,6 +33,7 @@ dependencies:
   image_picker: ^0.8.4+3
   camera: ^0.9.4+3
   iban: ^1.0.1
+  shared_preferences: ^2.0.8
 
 
 
