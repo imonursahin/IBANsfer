@@ -40,7 +40,7 @@ class MainContent extends StatelessWidget {
                   width: 120.0, height: 80.0),
               SizedBox(height: 20.0),
               Text(
-                "IBANsfer.",
+                "IBANsfer",
                 style: TextStyle(
                   fontSize: 30,
                   color: Color(0xFFf0b90b),
