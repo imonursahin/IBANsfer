@@ -147,9 +147,15 @@ class _State extends State<MainPanel> {
                         borderSide: BorderSide(color: Colors.white, width: 2)),
                     suffixIcon: IconButton(
                       onPressed: () {
-                        ibanController.clear();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (BuildContext context) {
+                            return IbanScannerHomeScreen();
+                          }),
+                        );
                       },
-                      icon: Icon(Icons.clear, size: 10, color: Colors.white),
+                      icon: Icon(Icons.camera_sharp,
+                          size: 20, color: Colors.white),
                     ),
                   ),
                 ),
@@ -208,16 +214,15 @@ class _State extends State<MainPanel> {
                         borderRadius: BorderRadius.circular(15.0)),
                     title: Row(
                       children: [
-                        Icon(Icons.info, color: Colors.white),
                         SizedBox(width: 10.0),
                         new Text(
-                          "IBANsfer",
+                          "IBANsfer 💳",
                           style: TextStyle(color: Colors.white),
                         ),
                       ],
                     ),
                     content: new Text(
-                      "\n IBAN bilgilerinizi tek bir yerden erişebilmenize ve yönetmenize olanak sağlayan ücretsiz ve güvenli bir uygulamadır. \n\n - iban numarası ekleme, silme ve paylaşma. \n\n - iban tarama. \n\n\n\n\n ibansfer@gmail.com",
+                      "\n IBAN bilgilerinizi tek bir yerden erişebilmenize ve yönetmenize olanak sağlayan ücretsiz ve güvenli bir uygulamadır. 🆓 ✅ 😍 \n\n\n  📩  ibansfer@gmail.com",
                       style: TextStyle(color: Colors.white),
                     ),
                     actions: <Widget>[
@@ -254,7 +259,7 @@ class _State extends State<MainPanel> {
                       }),
                     );
                   },
-                  child: Icon(Icons.document_scanner),
+                  child: Icon(Icons.delete_forever, color: Colors.red),
                 )),
           ],
         ),

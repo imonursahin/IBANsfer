@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ibansfer/panel.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
-import 'package:mailer/smtp_server/gmail.dart';
-import 'auCode.dart';
+import 'package:ibansfer/src/mail_service.dart';
+import 'package:ibansfer/ui/panel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainLogin extends StatefulWidget {
   const MainLogin({Key? key}) : super(key: key);
@@ -77,7 +75,7 @@ class _MainLoginState extends State<MainLogin> {
                 borderRadius: BorderRadius.circular(24),
               ),
               onPressed: () {
-                sendMail();
+                MailService();
                 showDialog(
                   barrierDismissible: false,
                   context: context,
@@ -154,40 +152,5 @@ class _MainLoginState extends State<MainLogin> {
         ),
       ),
     );
-  }
-}
-
-sendMail() async {
-  String username = 'your mail';
-  String password = 'your pass';
-/*   String domainSmtp = 'smtp.gmail.com';
- */
-  //also use for gmail smtp
-  // ignore: deprecated_member_use
-  final smtpServer = gmail(username, password);
-
-  //user for your own domain
-/*   final smtpServer =
-      SmtpServer(domainSmtp, username: username, password: password, port: 587); */
-
-  final message = Message()
-    ..from = Address(username, 'IBANsfer')
-    ..recipients.add(emailController.text)
-    //..ccRecipients.addAll(['destCc1@example.com', 'destCc2@example.com'])
-    //..bccRecipients.add(Address('bccAddress@example.com'))
-    ..subject = 'IBANsfer Doğrulama Kodu 🙂'
-    ..text =
-        'Doğrulama kodunu ilgili alana girerek hesabınıza giriş yapabilirsiniz. \n' +
-            get6DigitNumber() +
-            '\n\n\n IBANsfer \n';
-
-  try {
-    final sendReport = await send(message, smtpServer);
-    print('Message sent: ' + sendReport.toString());
-  } on MailerException catch (e) {
-    print('Message not sent.');
-    for (var p in e.problems) {
-      print('Problem: ${p.code}: ${p.msg}');
-    }
   }
 }

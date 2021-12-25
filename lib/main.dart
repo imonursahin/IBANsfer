@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'login.dart';
-import 'panel.dart';
+import 'ui/login.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
