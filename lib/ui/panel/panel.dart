@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ibansfer/ui/theme/app_colors.dart';
 import 'package:share/share.dart';
 import 'iban_scanner_home_screen.dart';
 
@@ -264,7 +265,7 @@ class _State extends State<MainPanel> {
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
-          backgroundColor: const Color(0xFFf17c03),
+          backgroundColor: AppColors.btnOrange,
           foregroundColor: Colors.white,
           icon: Icon(
             Icons.add,
@@ -282,7 +283,7 @@ class _State extends State<MainPanel> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         body: Container(
-          decoration: BoxDecoration(color: Color(0xFF181f29)),
+          decoration: BoxDecoration(color: AppColors.mainColor),
           child: Column(children: <Widget>[
             Expanded(
                 child: ListView.builder(

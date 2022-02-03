@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'flutter_iban_scanner_screen.dart';
+import 'package:ibansfer/ui/theme/app_colors.dart';
 
 GlobalKey scaffold = GlobalKey();
 
@@ -44,7 +45,7 @@ class _IbanScannerHomeScreenState extends State<IbanScannerHomeScreen> {
       ),
       body: SafeArea(
         child: Container(
-          decoration: BoxDecoration(color: Color(0xFF181f29)),
+          decoration: BoxDecoration(color: AppColors.mainColor),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

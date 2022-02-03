@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ibansfer/src/mail_service.dart';
-import 'package:ibansfer/ui/panel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ibansfer/ui/panel/panel.dart';
+import 'package:ibansfer/ui/theme/app_colors.dart';
 
 class MainLogin extends StatefulWidget {
   const MainLogin({Key? key}) : super(key: key);
@@ -18,7 +18,7 @@ class _MainLoginState extends State<MainLogin> {
   Widget build(BuildContext context) {
     return Material(
       child: Container(
-        decoration: BoxDecoration(color: Color(0xFF181f29)),
+        decoration: BoxDecoration(color: AppColors.mainColor),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
