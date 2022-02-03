@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ibansfer/ui/login/login.dart';
 import 'package:ibansfer/ui/panel/panel.dart';
 import 'package:ibansfer/util/theme/app_colors.dart';
 
@@ -17,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
         const Duration(seconds: 2),
         () => Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => MainPanel()),
+              MaterialPageRoute(builder: (context) => MainLogin()),
             ));
   }
 

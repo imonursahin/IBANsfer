@@ -4,8 +4,8 @@ import 'package:mailer/smtp_server.dart';
 
 class MailService {
   sendMail(String email, String randomNumber) async {
-    String username = 'your mail';
-    String password = 'your pass';
+    String username = 'ibansfer@gmail.com';
+    String password = 'pass';
 /*   String domainSmtp = 'smtp.gmail.com';
  */
     //also use for gmail smtp
