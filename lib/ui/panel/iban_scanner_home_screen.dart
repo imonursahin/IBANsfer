@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:ibansfer/util/theme/app_colors.dart';
 import 'flutter_iban_scanner_screen.dart';
-import 'package:ibansfer/ui/theme/app_colors.dart';
 
 GlobalKey scaffold = GlobalKey();
 

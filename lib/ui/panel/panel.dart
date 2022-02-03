@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ibansfer/ui/theme/app_colors.dart';
+import 'package:ibansfer/util/theme/app_colors.dart';
 import 'package:share/share.dart';
 import 'iban_scanner_home_screen.dart';
 

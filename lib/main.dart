@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'ui/splash/splash_screen.dart';
-import 'package:ibansfer/ui/theme/app_colors.dart';
+import 'util/theme/app_colors.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(

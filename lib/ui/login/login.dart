@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ibansfer/src/mail_service.dart';
 import 'package:ibansfer/ui/panel/panel.dart';
-import 'package:ibansfer/ui/theme/app_colors.dart';
+import 'package:ibansfer/util/src/mail_service.dart';
+import 'package:ibansfer/util/theme/app_colors.dart';
 
 class MainLogin extends StatefulWidget {
   const MainLogin({Key? key}) : super(key: key);
