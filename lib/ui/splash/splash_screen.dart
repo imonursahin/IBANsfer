@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ibansfer/ui/panel/panel.dart';
 import 'package:ibansfer/util/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -12,6 +13,12 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    new Future.delayed(
+        const Duration(seconds: 2),
+        () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainPanel()),
+            ));
   }
 
   @override

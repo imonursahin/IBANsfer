@@ -13,6 +13,10 @@ class _State extends State<MainPanel> {
   final List<String> bankName = <String>[];
   final List<String> iban = <String>[];
 
+  String messageCheck = "";
+  Color messageColor = Colors.white;
+
+  TextEditingController ibanCheck = TextEditingController();
   TextEditingController userController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController ibanController = TextEditingController();
@@ -253,14 +257,97 @@ class _State extends State<MainPanel> {
                 padding: EdgeInsets.only(right: 20.0),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (BuildContext context) {
-                        return IbanScannerHomeScreen();
-                      }),
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return StatefulBuilder(builder:
+                            (BuildContext context, StateSetter setState) {
+                          return AlertDialog(
+                            backgroundColor: Color(0xFF29313c),
+                            elevation: 25,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0)),
+                            title: Row(
+                              children: [
+                                Icon(Icons.info, color: Colors.white),
+                                SizedBox(width: 10.0),
+                                new Text(
+                                  "İban kontrol",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                Spacer(),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.cancel,
+                                  ),
+                                  iconSize: 25,
+                                  color: Colors.red,
+                                  onPressed: () {
+                                    ibanCheck.clear();
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                            content: TextField(
+                              style: TextStyle(color: Colors.white),
+                              controller: ibanCheck,
+                              cursorColor: Colors.white,
+                              decoration: InputDecoration(
+                                counterStyle: TextStyle(
+                                  height: double.minPositive,
+                                ),
+                                counterText: "",
+                                border: OutlineInputBorder(),
+                                labelText: 'IBAN',
+                                labelStyle: TextStyle(
+                                  color: Colors.blueGrey,
+                                ),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.white, width: 2)),
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    ibanCheck.clear();
+                                  },
+                                  icon: Icon(Icons.clear,
+                                      size: 10, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            actions: <Widget>[
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(messageCheck,
+                                    style: TextStyle(
+                                      color: messageColor,
+                                      fontSize: 12.0,
+                                    )),
+                              ),
+                              // ignore: deprecated_member_use
+                              new RaisedButton(
+                                onPressed: () {
+                                  ibanChecks(setState);
+                                },
+                                child: Text(
+                                  'Kontrol Et',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                textColor: Colors.white,
+                                color: AppColors.btnOrange,
+                                padding: EdgeInsets.fromLTRB(12, 12, 12, 12),
+                              ),
+                            ],
+                          );
+                        });
+                      },
                     );
                   },
-                  child: Icon(Icons.delete_forever, color: Colors.red),
+                  child: Icon(Icons.check_circle, color: Colors.green),
                 )),
           ],
         ),
@@ -411,5 +498,34 @@ class _State extends State<MainPanel> {
                     }))
           ]),
         ));
+  }
+
+  ibanChecks(setState) {
+    String iban = ibanCheck.text.toString().replaceAll(' ', '');
+    print(iban);
+    var wrongIban = "x Hatalı ! IBAN adresi, Türkiye [TR] için geçerli değil. ";
+    var correctIban =
+        " √ IBAN, Türkiye [TR] için geçerli. \n √ IBAN, Türkiye [TR] için doğru uzunluğuna sahip. \n √ IBAN, Türkiye [TR] için standart IBAN karakteri biçimindedir.";
+    var notIban = "İban adresi girmediniz.";
+
+    if (iban.length == 26 &&
+        iban[0].toUpperCase() == "T" &&
+        iban[1].toUpperCase() == "R" &&
+        num.tryParse(iban.substring(2)) != null) {
+      setState(() {
+        messageCheck = correctIban;
+        messageColor = Colors.green;
+      });
+    } else if (ibanCheck.text.isEmpty) {
+      setState(() {
+        messageCheck = notIban;
+        messageColor = Colors.grey;
+      });
+    } else {
+      setState(() {
+        messageCheck = wrongIban;
+        messageColor = Colors.red;
+      });
+    }
   }
 }
