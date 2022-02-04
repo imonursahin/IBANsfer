@@ -19,8 +19,8 @@ class IBANScannerView extends StatefulWidget {
   IBANScannerView({
     required this.onScannerResult,
     this.cameras = const <CameraDescription>[],
-    this.allowImagePicker = true,
-    this.allowCameraSwitch = true,
+    this.allowImagePicker = false,
+    this.allowCameraSwitch = false,
   });
 
   @override
@@ -168,8 +168,8 @@ class _IBANScannerViewState extends State<IBANScannerView> {
     return ListView(shrinkWrap: true, children: [
       _image != null
           ? Container(
-              height: 400,
-              width: 400,
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
               child: Stack(
                 fit: StackFit.expand,
                 children: <Widget>[

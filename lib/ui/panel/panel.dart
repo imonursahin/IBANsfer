@@ -1,7 +1,14 @@
+import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ibansfer/ui/login/login.dart';
+import 'package:ibansfer/util/database/db_data_req.dart';
+import 'package:ibansfer/util/src/iban_req.dart';
+import 'package:ibansfer/util/src/user_req.dart';
 import 'package:ibansfer/util/theme/app_colors.dart';
 import 'package:share/share.dart';
-import 'iban_scanner_home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'flutter_iban_scanner_screen.dart';
 
 class MainPanel extends StatefulWidget {
   @override
@@ -9,9 +16,12 @@ class MainPanel extends StatefulWidget {
 }
 
 class _State extends State<MainPanel> {
-  final List<String> userName = <String>[];
-  final List<String> bankName = <String>[];
-  final List<String> iban = <String>[];
+  List<IbanReq> ibanList = [];
+  List<UserReq> userList = [];
+
+  bool isLoading = false;
+  String userEmail = "";
+  List<CameraDescription>? cameras;
 
   String messageCheck = "";
   Color messageColor = Colors.white;
@@ -23,14 +33,37 @@ class _State extends State<MainPanel> {
 
   _shareData(int index) {
     Share.share(
-        'IBANsfer aracılığı ile gönderildi. \n Banka: ${bankName[index]} \n Alıcı Adı: ${userName[index]} \n IBAN: ${iban[index]} ');
+        'Finansfer aracılığı ile gönderildi. \n Banka: ${ibanList[index].bankName} \n Alıcı Adı: ${ibanList[index].ibanOwner} \n IBAN: ${ibanList[index].ibanNumber} ');
   }
 
-  void addItemToList() {
+  @override
+  void initState() {
+    super.initState();
+    _initCameras();
+
+    getDatabaseIbans();
+  }
+
+  @override
+  void dispose() {
+    ibanController.dispose();
+    super.dispose();
+  }
+
+  void _initCameras() async {
+    cameras = await availableCameras();
+  }
+
+  getDatabaseIbans() async {
     setState(() {
-      userName.insert(0, userController.text);
-      bankName.insert(0, nameController.text);
-      iban.insert(0, ibanController.text);
+      isLoading = true;
+    });
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    userEmail = preferences.getString("userEmail")!;
+    ibanList = await Database.getIbansByEmail(userEmail);
+
+    setState(() {
+      isLoading = false;
     });
   }
 
@@ -39,6 +72,8 @@ class _State extends State<MainPanel> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
+        FocusNode focusNode = FocusNode();
+
         return AlertDialog(
           backgroundColor: Color(0xFF29313c),
           elevation: 25,
@@ -71,9 +106,7 @@ class _State extends State<MainPanel> {
               children: [
                 TextField(
                   style: TextStyle(color: Colors.white),
-                  maxLength: 20,
                   controller: nameController,
-                  autofocus: true,
                   cursorColor: Colors.white,
                   decoration: InputDecoration(
                     counterStyle: TextStyle(
@@ -102,7 +135,6 @@ class _State extends State<MainPanel> {
                 SizedBox(height: 10.0),
                 TextField(
                   style: TextStyle(color: Colors.white),
-                  maxLength: 50,
                   controller: userController,
                   cursorColor: Colors.white,
                   decoration: InputDecoration(
@@ -151,13 +183,29 @@ class _State extends State<MainPanel> {
                     focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white, width: 2)),
                     suffixIcon: IconButton(
-                      onPressed: () {
+                      onPressed: () => {
+                        focusNode.unfocus(),
+                        focusNode.canRequestFocus = false,
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (BuildContext context) {
-                            return IbanScannerHomeScreen();
-                          }),
-                        );
+                          MaterialPageRoute(
+                            builder: (context) => IBANScannerView(
+                              cameras: cameras!,
+                              onScannerResult: (iban) {
+                                ibanController.text = iban;
+                                Navigator.pop(context);
+                              },
+                              allowImagePicker: false,
+                              allowCameraSwitch: false,
+                            ),
+                          ),
+                        ),
+                        Future.delayed(
+                          Duration(milliseconds: 100),
+                          () {
+                            focusNode.canRequestFocus = true;
+                          },
+                        ),
                       },
                       icon: Icon(Icons.camera_sharp,
                           size: 20, color: Colors.white),
@@ -187,12 +235,27 @@ class _State extends State<MainPanel> {
               color: Color(0xFFf17c03),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16.0))),
-              onPressed: () {
-                addItemToList();
-                Navigator.pop(context);
-                nameController.clear();
-                ibanController.clear();
-                userController.clear();
+              onPressed: () async {
+                if (nameController.text != "" &&
+                    ibanController.text != "" &&
+                    userController.text != "") {
+                  ibanList.add(IbanReq(
+                      bankName: nameController.text,
+                      ibanNumber: ibanController.text,
+                      ibanOwner: userController.text));
+                  await Database.addIban(
+                      IbanReq(
+                          bankName: nameController.text,
+                          ibanNumber: ibanController.text,
+                          ibanOwner: userController.text),
+                      userEmail);
+                  getDatabaseIbans();
+                  setState(() {});
+                  nameController.clear();
+                  ibanController.clear();
+                  userController.clear();
+                  Navigator.pop(context);
+                } else {}
               },
             ),
           ],
@@ -232,11 +295,12 @@ class _State extends State<MainPanel> {
                     ),
                     actions: <Widget>[
                       // ignore: deprecated_member_use
+
                       new FlatButton(
                         child: new Text(
                           "Kapat",
                           style: TextStyle(
-                            color: Color(0xFFf17c03),
+                            color: AppColors.btnOrange,
                           ),
                         ),
                         onPressed: () {
@@ -373,129 +437,151 @@ class _State extends State<MainPanel> {
           decoration: BoxDecoration(color: AppColors.mainColor),
           child: Column(children: <Widget>[
             Expanded(
-                child: ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: bankName.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return SafeArea(
-                          child: Container(
-                              height: 92,
-                              margin: EdgeInsets.all(1),
-                              child: Card(
-                                margin: EdgeInsets.all(9),
-                                elevation: 20,
-                                color: Color(0xFF1c252e),
-                                child: Center(
-                                  child: ListTile(
-                                    leading: Column(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(
-                                            Icons.share,
-                                            size: 25,
-                                          ),
-                                          color: Color(0xFFf17c03),
-                                          onPressed: () {
-                                            _shareData(index);
-                                          },
+                child: isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                        color: AppColors.btnOrange,
+                      ))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: ibanList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return SafeArea(
+                              child: Container(
+                                  height: 92,
+                                  margin: EdgeInsets.all(1),
+                                  child: Card(
+                                    margin: EdgeInsets.all(9),
+                                    elevation: 20,
+                                    color: Color(0xFF1c252e),
+                                    child: Center(
+                                      child: ListTile(
+                                        leading: Column(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.share,
+                                                size: 25,
+                                              ),
+                                              color: Color(0xFFf17c03),
+                                              onPressed: () {
+                                                _shareData(index);
+                                              },
+                                            ),
+                                            Text(
+                                              "Hızlı Paylaş",
+                                              style: new TextStyle(
+                                                fontSize: 7.2,
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          "Hızlı Paylaş",
-                                          style: new TextStyle(
-                                            fontSize: 7.2,
-                                            color: Colors.white70,
-                                          ),
+                                        title: Text(
+                                          "${ibanList[index].bankName}",
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20),
                                         ),
-                                      ],
-                                    ),
-                                    title: Text(
-                                      "${bankName[index]}",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 20),
-                                    ),
-                                    trailing: IconButton(
-                                        icon: Icon(
-                                          Icons.keyboard_arrow_right_rounded,
-                                          size: 40,
-                                        ),
-                                        color: Colors.white,
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              // return object of type Dialog
-                                              return AlertDialog(
-                                                  backgroundColor:
-                                                      Color(0xFF29313c),
-                                                  elevation: 25,
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15.0)),
-                                                  title: Row(
-                                                    children: [
-                                                      new Text(
-                                                          "${bankName[index]}",
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .white)),
-                                                      Spacer(),
-                                                      IconButton(
-                                                        icon: Icon(
-                                                          Icons.cancel,
-                                                        ),
-                                                        iconSize: 25,
-                                                        color: Colors.red,
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
+                                        trailing: IconButton(
+                                            icon: Icon(
+                                              Icons
+                                                  .keyboard_arrow_right_rounded,
+                                              size: 40,
+                                            ),
+                                            color: Colors.white,
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  // return object of type Dialog
+                                                  return AlertDialog(
+                                                      backgroundColor:
+                                                          Color(0xFF29313c),
+                                                      elevation: 25,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          15.0)),
+                                                      title: Row(
+                                                        children: [
+                                                          new Text(
+                                                              "${ibanList[index].bankName}",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white)),
+                                                          Spacer(),
+                                                          IconButton(
+                                                            icon: Icon(
+                                                              Icons.cancel,
+                                                            ),
+                                                            iconSize: 25,
+                                                            color: Colors.red,
+                                                            onPressed: () {
+                                                              Navigator.pop(
+                                                                  context);
+                                                            },
+                                                          ),
+                                                        ],
                                                       ),
-                                                    ],
-                                                  ),
-                                                  content: new Text(
-                                                      " ${userName[index]} \n\n ${iban[index]} ",
-                                                      style: TextStyle(
-                                                          color: Colors.white)),
-                                                  actions: <Widget>[
-                                                    // ignore: deprecated_member_use
-                                                    new RaisedButton(
-                                                      child: Text('Sil',
+                                                      content: new Text(
+                                                          " ${ibanList[index].ibanOwner} \n\n ${ibanList[index].ibanNumber} ",
                                                           style: TextStyle(
                                                               color: Colors
                                                                   .white)),
-                                                      color: Colors.red,
-                                                      shape: RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                                  Radius.circular(
-                                                                      16.0))),
-                                                      onPressed: () {},
-                                                    ),
-                                                    // ignore: deprecated_member_use
-                                                    new RaisedButton(
-                                                      child: Text('Paylaş',
-                                                          style: TextStyle(
-                                                              color: Colors
-                                                                  .white)),
-                                                      color: Color(0xFFf17c03),
-                                                      shape: RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                                  Radius.circular(
-                                                                      16.0))),
-                                                      onPressed: () {
-                                                        _shareData(index);
-                                                      },
-                                                    ),
-                                                  ]);
-                                            },
-                                          );
-                                        }),
-                                  ),
-                                ),
-                              )));
-                    }))
+                                                      actions: <Widget>[
+                                                        // ignore: deprecated_member_use
+                                                        new RaisedButton(
+                                                          child: Text('Sil',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white)),
+                                                          color: Colors.red,
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius
+                                                                  .all(Radius
+                                                                      .circular(
+                                                                          16.0))),
+                                                          onPressed: () async {
+                                                            await Database
+                                                                .deleteIban(
+                                                                    ibanList[
+                                                                            index]
+                                                                        .docId!,
+                                                                    userEmail);
+                                                            getDatabaseIbans();
+                                                            Navigator.pop(
+                                                                context);
+                                                          },
+                                                        ),
+                                                        // ignore: deprecated_member_use
+                                                        new RaisedButton(
+                                                          child: Text('Paylaş',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white)),
+                                                          color:
+                                                              Color(0xFFf17c03),
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius: BorderRadius
+                                                                  .all(Radius
+                                                                      .circular(
+                                                                          16.0))),
+                                                          onPressed: () {
+                                                            _shareData(index);
+                                                          },
+                                                        ),
+                                                      ]);
+                                                },
+                                              );
+                                            }),
+                                      ),
+                                    ),
+                                  )));
+                        }))
           ]),
         ));
   }

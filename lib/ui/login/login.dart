@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ibansfer/ui/panel/panel.dart';
-import 'package:ibansfer/util/database/db_user_req.dart';
+import 'package:ibansfer/util/database/db_data_req.dart';
 import 'package:ibansfer/util/src/mail_service.dart';
 import 'package:ibansfer/util/src/verification_service.dart';
 import 'package:ibansfer/util/theme/app_colors.dart';
