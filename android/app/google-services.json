@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "593351858421",
+    "project_id": "ibansfer-b4da3",
+    "storage_bucket": "ibansfer-b4da3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593351858421:android:766c41ab59c6c717f00dbc",
+        "android_client_info": {
+          "package_name": "com.example.ibansfer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "593351858421-tptj2nirvdo0r2bgo1ku4oa4d921d8i4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASdN3GF29M0yS3M1WLNT1K8GOZPU_javk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "593351858421-tptj2nirvdo0r2bgo1ku4oa4d921d8i4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

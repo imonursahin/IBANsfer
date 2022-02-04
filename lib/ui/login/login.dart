@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:ibansfer/ui/panel/panel.dart';
+import 'package:ibansfer/util/database/db_user_req.dart';
 import 'package:ibansfer/util/src/mail_service.dart';
 import 'package:ibansfer/util/src/verification_service.dart';
 import 'package:ibansfer/util/theme/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:validators/validators.dart';
+import 'package:ibansfer/util/src/user_req.dart';
 
-class MainLogin extends StatefulWidget {
-  const MainLogin({Key? key}) : super(key: key);
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
-  _MainLoginState createState() => _MainLoginState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-var emailController = new TextEditingController();
-var auCodeController = new TextEditingController();
+class _LoginPageState extends State<LoginPage> {
+  TextEditingController? emailController;
+  TextEditingController? auCodeController;
 
-String? randomNumber;
-String? emailErrorText;
-String? auErrorText;
+  MailService? _mailService;
+  VerificationService? _verificationService;
 
-MailService? _mailService;
-VerificationService? _verificationService;
+  String? emailErrorText;
+  String? auErrorText;
+  String? randomNumber;
 
-class _MainLoginState extends State<MainLogin> {
+  @override
   void initState() {
     super.initState();
 
@@ -59,7 +63,7 @@ class _MainLoginState extends State<MainLogin> {
               "Giriş yapmak için mail adresinizi yazın.",
               style: TextStyle(
                 fontSize: 20,
-                color: Color(0xFFf1c740),
+                color: AppColors.brightOrange,
                 fontWeight: FontWeight.w100,
               ),
             ),
@@ -71,6 +75,7 @@ class _MainLoginState extends State<MainLogin> {
                 cursorColor: Colors.white,
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
+                    errorText: emailErrorText,
                     enabledBorder: const OutlineInputBorder(
                       borderSide:
                           const BorderSide(color: Colors.white, width: 1.0),
@@ -86,14 +91,6 @@ class _MainLoginState extends State<MainLogin> {
               ),
             ),
             SizedBox(height: 75.0),
-            Text(
-              "$emailErrorText",
-              style: TextStyle(
-                fontSize: 20,
-                color: Color(0xFFf1c740),
-                fontWeight: FontWeight.w100,
-              ),
-            ),
             MaterialButton(
               height: 40.0,
               minWidth: 150.0,
@@ -101,14 +98,26 @@ class _MainLoginState extends State<MainLogin> {
                 borderRadius: BorderRadius.circular(24),
               ),
               onPressed: () {
+                if (emailController!.text == "") {
+                  setState(() {
+                    emailErrorText = "Email boş olamaz.";
+                  });
+                  return;
+                }
+                if (!isEmail(emailController!.text)) {
+                  setState(() {
+                    emailErrorText = "Geçerli bir email giriniz.";
+                  });
+                  return;
+                }
                 randomNumber = _verificationService!.get6DigitNumber();
                 _mailService!
-                    .sendMail(emailController.text, randomNumber ?? "");
+                    .sendMail(emailController!.text, randomNumber ?? "");
                 showVerificationDialog();
                 setState(() {});
               },
               padding: EdgeInsets.all(12),
-              color: Color(0xFFf17c03),
+              color: AppColors.btnOrange,
               child: Text('Giriş Yap', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -122,6 +131,7 @@ class _MainLoginState extends State<MainLogin> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
+        // return object of type Dialog
         return AlertDialog(
             backgroundColor: Color(0xFF29313c),
             elevation: 25,
@@ -132,6 +142,7 @@ class _MainLoginState extends State<MainLogin> {
                 width: 180.0,
                 child: TextField(
                   autofocus: true,
+                  controller: auCodeController,
                   maxLength: 6,
                   keyboardType: TextInputType.number,
                   cursorColor: Colors.white,
@@ -140,11 +151,12 @@ class _MainLoginState extends State<MainLogin> {
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       counterStyle: TextStyle(
                         height: double.minPositive,
                       ),
+                      errorText: auErrorText,
+                      counterText: "",
                       labelText: 'Doğrulama Kodu',
                       labelStyle: TextStyle(
                         color: Colors.blueGrey,
@@ -159,7 +171,7 @@ class _MainLoginState extends State<MainLogin> {
                   borderRadius: BorderRadius.circular(24),
                 ),
                 onPressed: () {
-                  if (auCodeController.text == "") {
+                  if (auCodeController!.text == "") {
                     setState(() {
                       auErrorText = "Lütfen doğrulama kodunu giriniz.";
                     });
@@ -168,7 +180,7 @@ class _MainLoginState extends State<MainLogin> {
                   verifyCode();
                 },
                 padding: EdgeInsets.all(12),
-                color: Color(0xFFf17c03),
+                color: AppColors.btnOrange,
                 child: Text('Doğrula', style: TextStyle(color: Colors.white)),
               ),
             ]);
@@ -176,14 +188,19 @@ class _MainLoginState extends State<MainLogin> {
     );
   }
 
-  Future<void> verifyCode() async {
-    var personMail = emailController.text;
-    var isVerified = auCodeController.text;
-
-    if (personMail == emailController.text && isVerified == true) {
-      var sharedControl = await SharedPreferences.getInstance();
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => MainPanel()));
+  verifyCode() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    if (auCodeController?.text == randomNumber) {
+      var isUserExist =
+          await Database.isUserExist(UserReq(email: emailController?.text));
+      if (!isUserExist) {
+        await Database.addUser(UserReq(email: emailController?.text));
+      }
+      preferences.setBool("isVerified", true);
+      preferences.setString("userEmail", emailController!.text);
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => MainPanel()),
+          (Route<dynamic> route) => false);
     } else {
       return;
     }
