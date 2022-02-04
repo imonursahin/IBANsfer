@@ -4,7 +4,7 @@ It is a free and secure application that allows you to access and manage your IB
 
 - Adding, deleting and sharing iban number.
 - Iban scanning.
-- Iban accuracy check.
+- Iban verify check.
 
 
 ![1](https://user-images.githubusercontent.com/31903339/152586513-909ea8a1-876f-4999-916a-5c7bddf43241.png)
